@@ -18,8 +18,8 @@ using Microsoft.Extensions.Hosting;
 var app = await AgentsApp.PublishMessageAsync("HelloAgents", new NewMessageReceived
 {
     Message = "World"
-}, local: true);
-
+}, local: false);
+//var app = await AgentsApp.StartAsync();
 await app.WaitForShutdownAsync();
 
 namespace Hello
@@ -33,7 +33,8 @@ namespace Hello
             ISayHello,
             IHandleConsole,
             IHandle<NewMessageReceived>,
-            IHandle<ConversationClosed>
+            IHandle<ConversationClosed>,
+            IHandle<Shutdown>
     {
         public async Task Handle(NewMessageReceived item)
         {
@@ -55,8 +56,11 @@ namespace Hello
                 Message = goodbye
             };
             await PublishMessageAsync(evt).ConfigureAwait(false);
+        }
 
-            // Signal shutdown.
+        public async Task Handle(Shutdown item)
+        {
+            Console.WriteLine("Shutting down...");
             hostApplicationLifetime.StopApplication();
         }
 
